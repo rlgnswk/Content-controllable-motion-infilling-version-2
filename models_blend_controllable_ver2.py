@@ -186,6 +186,17 @@ def AdaIN(content_feat, style_mean, style_std):
     
     return normalized_feat * style_std.unsqueeze(-1).unsqueeze(-1).expand(size) + style_mean.unsqueeze(-1).unsqueeze(-1).expand(size)
 
+def IN(content_feat):
+    #assert (content_feat.size()[:2] == style_feat.size()[:2])
+    size = content_feat.size()
+    #style_mean, style_std = self.calc_mean_std(style_feat)
+    content_mean, content_std = calc_mean_std(content_feat)
+
+    normalized_feat = (content_feat - content_mean.expand(size)) / content_std.expand(size)
+    
+    return normalized_feat
+
+
 class Convolutional_blend(nn.Module):
     def __init__(self):
         super(Convolutional_blend, self).__init__()
@@ -204,7 +215,8 @@ class Convolutional_blend(nn.Module):
         self.blend_mean = blend_mean
         self.blend_std = blend_std        
         AdaIN_latent = AdaIN(mask_feat, blend_mean, blend_std)
-        
+        mask_feat = IN(mask_feat)
+
         out_affine = self.Decoder_module(AdaIN_latent)
 
         out_recon = self.Decoder_module(mask_feat)        
@@ -217,37 +229,22 @@ class Convolutional_blend(nn.Module):
     
         return blend_mean, blend_std
 
-    def test(self, masked_input, blend_gt, alpha):
+    def test_affine(self, masked_input, mask_gt, blend_gt, alpha):
         # make scalable output with a = [0.0, 0.1, ..., 1.0]
         # latent =  (1-a) * mask_feat + a * AdaIN_latent
 
         mask_feat = self.Content_Encoder_module(masked_input) # 
-        
+        mask_feat = IN(mask_feat)
+
         blend_mean, blend_std = self.Style_Encoder_module(blend_gt) #mean and var
         
-        AdaIN_latent = AdaIN(mask_feat, blend_mean, blend_std)
-
-        target_latent =  (1-alpha) * mask_feat + alpha * AdaIN_latent
-
-        out_test = self.Decoder_module(target_latent)  
-
-        return out_test
-
-    def test2(self, masked_input, mask_gt, blend_gt, alpha):
-        # make scalable output with a = [0.0, 0.1, ..., 1.0]
-        # latent =  (1-a) * mask_feat + a * AdaIN_latent
-
-        mask_feat = self.Content_Encoder_module(masked_input) # 
-        
-        blend_mean, blend_std = self.Style_Encoder_module(blend_gt) #mean and var
-        
-        gt_mean, gt_std = self.Style_Encoder_module(mask_gt)
+        #gt_mean, gt_std = self.Style_Encoder_module(mask_gt)
         
         AdaIN_latent_blend = AdaIN(mask_feat, blend_mean, blend_std)
 
-        AdaIN_latent_gt = AdaIN(mask_feat, gt_mean, gt_std)
+        #AdaIN_latent_gt = AdaIN(mask_feat, gt_mean, gt_std)
 
-        target_latent =  (1-alpha) * AdaIN_latent_gt + alpha * AdaIN_latent_blend
+        target_latent =  (1-alpha) * mask_feat + alpha * AdaIN_latent_blend
 
         out_test = self.Decoder_module(target_latent)  
 
