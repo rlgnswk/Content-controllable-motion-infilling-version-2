@@ -164,7 +164,9 @@ class Style_Encoder(nn.Module):
             mean = self.Fc_mean(x)
             std = self.Fc_std(x)
             
-            return mean, std
+            return torch.tanh(mean), torch.tanh(std)
+
+            #return mean, std
 
 def calc_mean_std(feat, eps=1e-5):
     # eps is a small value added to the variance to avoid divide-by-zero.

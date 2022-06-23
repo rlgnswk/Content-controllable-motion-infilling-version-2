@@ -123,8 +123,8 @@ def main(args):
 
             pred_affine, pred_recon = model(masked_input, blend_part_only)
             
-            concat_reals = torch.cat((blend_gt, gt_image), 1) #batch wise concat
-            concat_fakes = torch.cat((pred_affine, pred_recon), 1) #batch wise concat
+            concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
+            concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
             
 
             #NetD training
@@ -203,8 +203,8 @@ def main(args):
                 gt_blended_image= GT_model(blend_input).detach()
                 pred_affine, pred_recon = model(masked_input, blend_part_only)
 
-                concat_reals = torch.cat((blend_gt, gt_image), 1) #batch wise concat
-                concat_fakes = torch.cat((pred_affine, pred_recon), 1) #batch wise concat
+                concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
+                concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
                 
                 real = NetD(concat_reals)
                 fake = NetD(concat_fakes)
@@ -212,7 +212,7 @@ def main(args):
             loss_D_real = criterion_D(real, true_labels.detach())
             loss_D_fake = criterion_D(fake, fake_labels.detach())  
             recon_loss = loss_function(pred_affine, gt_blended_image.detach()) + loss_function(pred_recon, gt_image.detach())
-            loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
+            loss_G = criterion_G(NetD(concat_fakes), true_labels.detach())
 
             
             total_v_loss = (recon_loss + loss_G).item()
