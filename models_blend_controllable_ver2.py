@@ -234,7 +234,7 @@ class Convolutional_blend(nn.Module):
         # latent =  (1-a) * mask_feat + a * AdaIN_latent
 
         mask_feat = self.Content_Encoder_module(masked_input) # 
-        mask_feat = IN(mask_feat)
+        
 
         blend_mean, blend_std = self.Style_Encoder_module(blend_gt) #mean and var
         
@@ -243,7 +243,7 @@ class Convolutional_blend(nn.Module):
         AdaIN_latent_blend = AdaIN(mask_feat, blend_mean, blend_std)
 
         #AdaIN_latent_gt = AdaIN(mask_feat, gt_mean, gt_std)
-
+        mask_feat = IN(mask_feat)
         target_latent =  (1-alpha) * mask_feat + alpha * AdaIN_latent_blend
 
         out_test = self.Decoder_module(target_latent)  
