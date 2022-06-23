@@ -166,9 +166,9 @@ class Style_Encoder_VAE(nn.Module):
             x = self.Conv_block4(x)
             #print("x", x.shape)
             mean = self.Conv_block5(x) # 256 x 3 × 1
-            #print("mean", mean.shape)
+            #print("mean", mean.repeat(1,1,1,8).shape)
             logvar = self.Conv_block_std(x)
-            latent = self.sampling(mean, logvar)
+            latent = self.sampling(mean.repeat(1,1,1,8), logvar.repeat(1,1,1,8))
 
             return latent, mean, logvar
 
@@ -221,8 +221,8 @@ class Convolutional_blend(nn.Module):
         
         motion_latent, mean, logvar = self.Style_Encoder_module(blend_gt) #mean and var
 
-        print(mask_feat.shape)
-        print(motion_latent.shape)
+        #print(mask_feat.shape)
+        #print(motion_latent.shape)
         unified_latent = torch.cat((mask_feat, motion_latent), 1)  #channel 
         
         self.unified_latent = unified_latent
