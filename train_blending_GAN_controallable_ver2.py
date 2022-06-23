@@ -123,18 +123,23 @@ def main(args):
 
             pred_affine, pred_recon = model(masked_input, blend_part_only)
             
+            concat_reals = torch.cat((blend_gt, gt_image), 1) #batch wise concat
+            concat_fakes = torch.cat((pred_affine, pred_recon), 1) #batch wise concat
+            
+
             #NetD training
             for p in NetD.parameters():
                 p.requires_grad = True
             NetD.zero_grad()
 
             #real = NetD(gt_image)
-            real = NetD(blend_gt)
+            #concat blend and gt_image
+            real = NetD(concat_reals)
             true_labels = Variable(torch.ones_like(real))
             loss_D_real = criterion_D(real, true_labels.detach())
             
-            
-            fake = NetD(pred_affine.detach())
+            #concat pred_affine and pred_recon
+            fake = NetD(concat_fakes.detach())
             fake_labels = Variable(torch.zeros_like(fake))
             loss_D_fake = criterion_D(fake, fake_labels.detach())            
             
@@ -150,7 +155,7 @@ def main(args):
 
             recon_loss = loss_function(pred_affine, gt_blended_image.detach()) + loss_function(pred_recon, gt_image.detach())
 
-            loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
+            loss_G = criterion_G(NetD(concat_fakes), true_labels.detach())
                 
             total_train_loss = recon_loss + loss_G
             optimizer.zero_grad()
@@ -197,8 +202,12 @@ def main(args):
             with torch.no_grad():
                 gt_blended_image= GT_model(blend_input).detach()
                 pred_affine, pred_recon = model(masked_input, blend_part_only)
-                real = NetD(gt_image)
-                fake = NetD(pred_affine)
+
+                concat_reals = torch.cat((blend_gt, gt_image), 1) #batch wise concat
+                concat_fakes = torch.cat((pred_affine, pred_recon), 1) #batch wise concat
+                
+                real = NetD(concat_reals)
+                fake = NetD(concat_fakes)
 
             loss_D_real = criterion_D(real, true_labels.detach())
             loss_D_fake = criterion_D(fake, fake_labels.detach())  
