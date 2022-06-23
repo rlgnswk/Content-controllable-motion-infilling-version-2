@@ -97,13 +97,16 @@ def add_foot_contacts(data): # chaneel 73 -> 69, 69 is baseline
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str) # experiment name 
-parser.add_argument('--epoch', type=int, default=199, help='input batch size for training') #epoch num
+parser.add_argument('--epoch', type=int, default=0, help='input batch size for training') #epoch num
+
+parser.add_argument('--path', type=str, default="C:/Users/VML/Documents/GitHub/proj-various-conditional-motion-transition/experiment/")
+
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
 
-    data_path = "C:/Users/VML/Documents/GitHub/Motion_Style_Infilling/experiment/"+args.name +"/validation/"
+    data_path = args.path + args.name +"/validation/"
     epoch = args.epoch
     # style 
     '''db_GT = 'epoch_'+str(epoch)+'motion_a.npy'
@@ -117,15 +120,16 @@ if __name__ == '__main__':
 
     #blend
     db_GT = 'epoch_0_gt_image.npy'
+
     db_input = 'epoch_0_Masked_input.npy'
  
-    db_ResultAp0 = 'epoch_0_alpha_0.0_output.npy'
+    db_ResultAp0 = 'TestOutput_0.0.npy' 
     
-    db_ResultAp4 = 'epoch_0_alpha_0.4_output.npy'
+    db_ResultAp4 = 'TestOutput_0.4.npy' 
     
-    db_ResultAp6 = 'epoch_0_alpha_0.8_output.npy' 
+    db_ResultAp8 = 'TestOutput_0.8.npy' 
     
-    db_ResultAp10 = 'epoch_0_alpha_1.0_output.npy' 
+    db_ResultAp10 = 'TestOutput_1.0.npy' 
     
     db_Blend_GT = 'epoch_0_gt_blend.npy'
     
@@ -146,9 +150,9 @@ if __name__ == '__main__':
     #print(database.shape)
     database_ResultAp4 = add_foot_contacts(database_ResultAp4)
     
-    database_ResultAp6= np.load(os.path.join(data_path, db_ResultAp6))
+    database_ResultAp8= np.load(os.path.join(data_path, db_ResultAp8))
     #print(database.shape)
-    database_ResultAp6 = add_foot_contacts(database_ResultAp6)
+    database_ResultAp8 = add_foot_contacts(database_ResultAp8)
 
     database_ResultAp10= np.load(os.path.join(data_path, db_ResultAp10))
     #print(database.shape)
@@ -171,7 +175,7 @@ if __name__ == '__main__':
             database_input[index0:index0 + 1],
             database_ResultAp0[index0:index0 + 1],
             database_ResultAp4[index0:index0 + 1],
-            database_ResultAp6[index0:index0 + 1],
+            database_ResultAp8[index0:index0 + 1],
             database_ResultAp10[index0:index0 + 1],
             database_GT_blend[index0:index0 + 1],
         ])

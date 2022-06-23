@@ -98,12 +98,15 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str) # experiment name 
 parser.add_argument('--epoch', type=int, default=0, help='input batch size for training') #epoch num
+
+parser.add_argument('--path', type=str, default="C:/Users/VML/Documents/GitHub/proj-various-conditional-motion-transition/experiment/")
+
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
 
-    data_path = "C:/Users/VML/Documents/GitHub/Motion_Style_Infilling/experiment/"+args.name +"/validation/"
+    data_path = args.path + args.name +"/validation/"
     epoch = args.epoch
 
     #infilling
@@ -115,28 +118,20 @@ if __name__ == '__main__':
     db_GT = 'epoch_'+str(epoch)+'_gt_image.npy'
     #db_Input = 'epoch_'+str(epoch)+'_Masked_input.npy'
     db_Input = 'epoch_'+str(epoch)+'_Masked_input.npy'
-    db_Results_rand = 'epoch_'+str(epoch)+'_alpha_0_TestOutput.npy'
-    db_Results = 'epoch_'+str(epoch)+'_pred.npy'
+    db_Results_rand = 'epoch_'+str(epoch)+'TestOutput.npy'
+
     
     database_GT= np.load(os.path.join(data_path, db_GT))
     #print(database.shape)
     database_GT = add_foot_contacts(database_GT)
-
-
-
-    
-    database_Results_rand= np.load(os.path.join(data_path, db_Results_rand))
-    #print(database.shape)
-    database_Results_rand = add_foot_contacts(database_Results_rand)
-
-    database_Results= np.load(os.path.join(data_path, db_Results))
-    #print(database.shape)
-    database_Results = add_foot_contacts(database_Results)
   
     database_Input= np.load(os.path.join(data_path, db_Input))
     #print(database.shape)
     database_Input = add_foot_contacts(database_Input)
-    
+  
+    database_Results_rand= np.load(os.path.join(data_path, db_Results_rand))
+    #print(database.shape)
+    database_Results_rand = add_foot_contacts(database_Results_rand)  
     for i in range(20):
         index0 = np.random.randint(0, len(database_GT))
         #index1 = np.random.randint(0, len(database))
@@ -145,8 +140,7 @@ if __name__ == '__main__':
         animation_plot([
             database_GT[index0:index0 + 1],
             database_Input[index0:index0 + 1],
-            
-            database_Results[index0:index0 + 1],
+        
             database_Results_rand[index0:index0 + 1]
         ])
         

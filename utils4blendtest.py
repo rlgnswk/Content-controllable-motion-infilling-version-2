@@ -78,7 +78,7 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("recon", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_recon_'+str(i)+'.png')
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_recon.png')
             
 
         for i in range(1): 
@@ -87,7 +87,7 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("prediction", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_prediction_'+str(i)+'.png')
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_prediction.png')
             
         for i in range(1): 
             plt.figure(figsize=(2,4))
@@ -95,7 +95,7 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("gt_image", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_gt_image_'+str(i)+'.png')  
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_gt_image.png')  
             
         for i in range(1): 
             plt.figure(figsize=(2,4))
@@ -104,7 +104,7 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("blend_gt", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_blend_gt_'+str(i)+'.png')
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_blend_gt.png')
 
         for i in range(1): 
             plt.figure(figsize=(2,4))
@@ -113,7 +113,7 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("gt_blended_image", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_gt_blended_image_'+str(i)+'.png')
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_gt_blended_image.png')
         
         for i in range(1): 
             plt.figure(figsize=(2,4))
@@ -122,7 +122,7 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("blend_input", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_blend_input_'+str(i)+'.png')
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_blend_input.png')
 
         for i in range(1): 
             plt.figure(figsize=(2,4))
@@ -131,10 +131,14 @@ class saveData():
             plt.clim(-100, 50)
             #plt.axis('off')
             plt.title("maksed_input", fontsize=25)
-            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_masked_input'+str(i)+'.png')
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_masked_input.png')
 
         plt.close('all')
     
     def save_result_test(self, output, iter, alpha):
         output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
-        np.save(self.save_dir_validation + '/epoch_' + str(iter)+"_alpha_"+str(alpha) + "_TestOutput", output)
+        np.save(self.save_dir_validation + "/TestOutput", output)
+
+    def save_result_test_Affine(self, output, iter, alpha):
+        output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        np.save(self.save_dir_validation + "/TestOutput_"+str(alpha), output)

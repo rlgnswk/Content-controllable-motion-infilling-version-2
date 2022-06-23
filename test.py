@@ -100,6 +100,7 @@ def main(args):
                 gt_blended_image= GT_model(blend_input)
                 pred_affine, pred_recon = model(masked_input, blend_part_only)
                 saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, pred_recon, iter) 
-        
+                break
+            
 if __name__ == "__main__":
     main(args)
