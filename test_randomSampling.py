@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='C:/Users/VML/Desktop/
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--model_pretrained_modelpath', type=str, default="pertrained/model_399.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/model_323_controllable_ver2.pt")
 parser.add_argument('--batchSize', type=int, default=10, help='input batch size for training')
 
 args = parser.parse_args()
@@ -61,8 +61,8 @@ def main(args):
 
 
     #pretrained_modelpath = "/root/Motion_Style_Infilling/experiment/controllableFirst0609/model/model_300.pt"
-    model_pretrained_modelpath ="pertrained/model_323_controllable_ver2.pt"
-    model.load_state_dict(torch.load(model_pretrained_modelpath))
+    #model_pretrained_modelpath ="pertrained/model_323_controllable_ver2.pt"
+    model.load_state_dict(torch.load(args.pretrained))
     model.eval()
 
     NetD = models.Discriminator().to(device)

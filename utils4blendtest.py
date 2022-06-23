@@ -52,13 +52,14 @@ class saveData():
             model.state_dict(),
             self.save_dir_model + '/model_' + str(epoch) + '.pt')
     
-    def save_result(self, pred, gt_image, blend_gt, gt_blended_image, blend_input, maksed_input, epoch):
+    def save_result(self, pred, gt_image, blend_gt, gt_blended_image, blend_input, maksed_input, recon, epoch):
         pred = pred.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         gt_image = gt_image.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         blend_gt = blend_gt.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         gt_blended_image = gt_blended_image.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         blend_input = blend_input.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         maksed_input = maksed_input.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        recon = recon.detach().squeeze(1).permute(0,2,1).cpu().numpy()
 
         np.save(self.save_dir_validation + '/epoch_' + str(epoch) + "_pred", pred)
         np.save(self.save_dir_validation + '/epoch_' + str(epoch) + "_gt_image", gt_image)
@@ -66,10 +67,20 @@ class saveData():
         np.save(self.save_dir_validation + '/epoch_' + str(epoch) + "_gt_blended_image", gt_blended_image)
         np.save(self.save_dir_validation + '/epoch_' + str(epoch) + "_blend_input", blend_input)
         np.save(self.save_dir_validation + '/epoch_' + str(epoch) + "_Masked_input", maksed_input)
+        np.save(self.save_dir_validation + '/epoch_' + str(epoch) + "_recon", recon)
 
 
         cmap = plt.get_cmap('jet') 
-        
+
+        for i in range(1): 
+            plt.figure(figsize=(2,4))
+            plt.matshow(recon[i], cmap=cmap)
+            plt.clim(-100, 50)
+            #plt.axis('off')
+            plt.title("recon", fontsize=25)
+            plt.savefig(self.save_dir_validation + '/epoch_'+ str(epoch) +'_recon_'+str(i)+'.png')
+            
+
         for i in range(1): 
             plt.figure(figsize=(2,4))
             plt.matshow(pred[i], cmap=cmap)
