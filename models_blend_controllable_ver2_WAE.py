@@ -222,7 +222,7 @@ class Convolutional_blend(nn.Module):
         out_affine = self.Decoder_module(AdaIN_latent)
 
         out_recon = self.Decoder_module(mask_feat)        
-        return out_affine, out_recon
+        return out_affine, out_recon, blend_mean, blend_std
 
 
     def forward_content_encoder(self, blend_gt):

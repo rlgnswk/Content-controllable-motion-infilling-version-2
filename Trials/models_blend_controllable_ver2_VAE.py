@@ -83,7 +83,7 @@ class Decoder_module_upsampling(nn.Module):
         def __init__(self):
             super(Decoder_module_upsampling, self).__init__()
             # input latent size 3 × 8 × 256  - HWC
-            self.DeConv_block1 = DeConv_block_upsampling(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, size=(5,15))
+            self.DeConv_block1 = DeConv_block_upsampling(input_channels = 256*2, output_channels = 256, kernel_size=3, stride=1, padding=1, size=(5,15))
             self.DeConv_block2 = DeConv_block_upsampling(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, size=(9,30))
             self.DeConv_block3 = DeConv_block_upsampling(input_channels = 256, output_channels = 128, kernel_size=3, stride=1, padding=1, size=(18, 60))
             self.DeConv_block4 = DeConv_block_upsampling(input_channels = 128, output_channels = 64, kernel_size=3, stride=1, padding=1, size=(35, 120))
@@ -133,40 +133,46 @@ class Conv_block_GroupNorm(nn.Module):
       def forward(self, x):
         
         x = self.Lrelu1(self.gn1(self.conv1(x)))
-        #out = self.mp(self.Lrelu2(self.gn2(self.conv2(x))))
-        out = self.Lrelu2(self.gn2(self.conv2(x)))
+        out = self.mp(self.Lrelu2(self.gn2(self.conv2(x))))
+        #out = self.Lrelu2(self.gn2(self.conv2(x)))
         
         return out
     
-class Style_Encoder(nn.Module):
+class Style_Encoder_VAE(nn.Module):
         def __init__(self, IsVAE=False):
-            super(Style_Encoder, self).__init__()
+            super(Style_Encoder_VAE, self).__init__()
             #  input sample of size  69 × 30 (x 1) - BCHW B x 1 x 69 × 240 
             #  resized by pooling, not conv
             self.Conv_block1 = Conv_block_GroupNorm(input_channels = 1, output_channels = 32, kernel_size=3, stride=1, padding=1, pooling=2)
             self.Conv_block2 = Conv_block_GroupNorm(input_channels = 32, output_channels = 64, kernel_size=3, stride=1, padding=1, pooling=2)
             self.Conv_block3 = Conv_block_GroupNorm(input_channels = 64, output_channels = 128, kernel_size=3, stride=1, padding=1, pooling=2)
-            self.Conv_block4 = Conv_block_GroupNorm(input_channels = 128, output_channels = 128, kernel_size=3, stride=1, padding=1, pooling=2)
-            #self.Conv_block5 = Conv_block_GroupNorm(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, pooling=2)
+            self.Conv_block4 = Conv_block_GroupNorm(input_channels = 128, output_channels = 256, kernel_size=3, stride=1, padding=1, pooling=2)
+            self.Conv_block5 = Conv_block_GroupNorm(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, pooling=2)
+            
+            self.Conv_block_std = Conv_block_GroupNorm(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, pooling=2)
             # output latent size 3 × 8 × 256  - HWC B x 256 x 3 × 8 
             
-            self.Fc_mean = nn.Linear(69*30*128, 256)
-            self.Fc_std = nn.Linear(69*30*128, 256)
+            #self.Fc_mean = nn.Linear(69*30*128, 256)
+            #self.Fc_std = nn.Linear(69*30*128, 256)
+        def sampling(self, mean, logvar):
+            std = torch.exp(0.5 * logvar)
+            eps = torch.randn_like(std)
+            return eps * std + mean
 
         def forward(self, x):
             x = self.Conv_block1(x)
             x = self.Conv_block2(x)
             x = self.Conv_block3(x)
             x = self.Conv_block4(x)
-            #print(x.shape)
-            #x = self.Conv_block5(x) # 256 x 3 × 8 
-            x = x.view(x.size(0), -1)
-            mean = self.Fc_mean(x)
-            std = self.Fc_std(x)
-            
-            #return torch.tanh(mean), torch.tanh(std)
+            #print("x", x.shape)
+            mean = self.Conv_block5(x) # 256 x 3 × 1
+            #print("mean", mean.shape)
+            logvar = self.Conv_block_std(x)
+            latent = self.sampling(mean, logvar)
 
-            return mean, std
+            return latent, mean, logvar
+
+            #return mean, std
 
 def calc_mean_std(feat, eps=1e-5):
     # eps is a small value added to the variance to avoid divide-by-zero.
@@ -204,25 +210,28 @@ class Convolutional_blend(nn.Module):
         super(Convolutional_blend, self).__init__()
         # input sample of size 69 × 240
         self.Content_Encoder_module = Encoder_module_IN()
-        self.Style_Encoder_module = Style_Encoder()
+        self.Style_Encoder_module = Style_Encoder_VAE()
 
         self.Decoder_module = Decoder_module_upsampling()
-        self.blend_mean = 0.0
-        self.blend_std = 0.0
+         
+        
 
     def forward(self, masked_input, blend_gt):
         mask_feat = self.Content_Encoder_module(masked_input) # 
         
-        blend_mean, blend_std = self.Style_Encoder_module(blend_gt) #mean and var
-        self.blend_mean = blend_mean
-        self.blend_std = blend_std        
-        AdaIN_latent = AdaIN(mask_feat, blend_mean, blend_std)
-        mask_feat = IN(mask_feat)
+        motion_latent, mean, logvar = self.Style_Encoder_module(blend_gt) #mean and var
 
-        out_affine = self.Decoder_module(AdaIN_latent)
+        print(mask_feat.shape)
+        print(motion_latent.shape)
+        unified_latent = torch.cat((mask_feat, motion_latent), 1)  #channel 
+        
+        self.unified_latent = unified_latent
 
-        out_recon = self.Decoder_module(mask_feat)        
-        return out_affine, out_recon
+        out_affine = self.Decoder_module(unified_latent)
+    
+        #out_recon = self.Decoder_module(mask_feat)        
+
+        return out_affine, mean, logvar
 
 
     def forward_content_encoder(self, blend_gt):
