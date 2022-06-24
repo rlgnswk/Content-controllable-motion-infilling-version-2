@@ -167,10 +167,10 @@ class Style_Encoder_VAE(nn.Module):
             #print("x", x.shape)
             mean = self.Conv_block5(x) # 256 x 3 × 1
             #print("mean", mean.repeat(1,1,1,8).shape)
-            logvar = self.Conv_block_std(x)
-            latent = self.sampling(mean, logvar)
+            #logvar = self.Conv_block_std(x)
+            #latent = self.sampling(mean, logvar)
 
-            return latent.repeat(1,1,1,8), mean, logvar
+            return mean.repeat(1,1,1,8) #mean, logvar
 
             #return mean, std
 
@@ -219,7 +219,7 @@ class Convolutional_blend(nn.Module):
     def forward(self, masked_input, blend_part_only):
         mask_feat = self.Content_Encoder_module(masked_input) # 
         
-        motion_latent, mean, logvar = self.Style_Encoder_module(blend_part_only) #mean and var
+        motion_latent = self.Style_Encoder_module(blend_part_only) #mean and var
 
         #print(mask_feat.shape)
         #print(motion_latent.shape)
@@ -231,7 +231,7 @@ class Convolutional_blend(nn.Module):
     
         #out_recon = self.Decoder_module(mask_feat)        
 
-        return out_affine, mean, logvar
+        return out_affine
 
 
     def forward_content_encoder(self, blend_gt):
