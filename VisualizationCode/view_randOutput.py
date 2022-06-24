@@ -118,7 +118,7 @@ if __name__ == '__main__':
     db_GT = 'epoch_'+str(epoch)+'_gt_image.npy'
     #db_Input = 'epoch_'+str(epoch)+'_Masked_input.npy'
     db_Input = 'epoch_'+str(epoch)+'_Masked_input.npy'
-    db_Results_rand = 'epoch_'+str(epoch)+'TestOutput.npy'
+    db_Results_rand = 'TestOutput.npy'
 
     
     database_GT= np.load(os.path.join(data_path, db_GT))

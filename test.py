@@ -17,7 +17,7 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver2 as models
+import models_blend_controllable_ver2_VAE as models
 
 import utils4blendtest as utils
 import data_load_blend_ver2 as data_load
@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='C:/Users/VML/Desktop/
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/model_323_controllable_ver2.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0623concat_VAE_z_regul_model_199.pt")
 parser.add_argument('--batchSize', type=int, default=10, help='input batch size for training')
 
 args = parser.parse_args()
@@ -98,8 +98,8 @@ def main(args):
             
             if iter%100 == 0:
                 gt_blended_image= GT_model(blend_input)
-                pred_affine, pred_recon = model(masked_input, blend_part_only)
-                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, pred_recon, iter) 
+                pred_affine, _, _ = model(masked_input, blend_part_only)
+                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, pred_affine, iter) 
                 break
             
 if __name__ == "__main__":

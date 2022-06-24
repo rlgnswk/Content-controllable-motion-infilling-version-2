@@ -257,6 +257,7 @@ class Convolutional_blend(nn.Module):
         mask_feat = IN(mask_feat)
         target_latent =  (1-alpha) * mask_feat + alpha * AdaIN_latent_blend
 
+        
         out_test = self.Decoder_module(target_latent)  
 
         return out_test
@@ -265,11 +266,12 @@ class Convolutional_blend(nn.Module):
         # fixed mean and std for checking separation recon and content space 
 
         mask_feat = self.Content_Encoder_module(masked_input) # 
-        blend_mean = torch.rand(batch_size, 256) * 2 - 1 
-        blend_std = torch.rand(batch_size, 256) * 2 - 1
-        AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
+        
+        rand_latent = torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()
 
-        out_test = self.Decoder_module(AdaIN_latent_blend)  
+        #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
+        unified_latent = torch.cat((mask_feat, rand_latent), 1)  #channel 
+        out_test = self.Decoder_module(unified_latent)  
 
         return out_test
 
