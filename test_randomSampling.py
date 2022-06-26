@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='C:/Users/VML/Desktop/
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/0624_concat_AE_model_51.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0624_AE_basic_0_model_199.pt")
 parser.add_argument('--batchSize', type=int, default=10, help='input batch size for training')
 
 args = parser.parse_args()
@@ -98,7 +98,7 @@ def main(args):
             if iternum%100 == 0:
                 gt_blended_image= GT_model(blend_input)
                 pred_affine = model(masked_input, blend_part_only)
-                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, blend_input, masked_input, iternum) 
+                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, masked_input, iternum) 
                 random_sampling_output = model.test_rand_mu_var(masked_input, args.batchSize)
                 saveUtils.save_result_test(random_sampling_output, iternum, 0)
                 break

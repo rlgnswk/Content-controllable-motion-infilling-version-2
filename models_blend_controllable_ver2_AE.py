@@ -265,7 +265,7 @@ class Convolutional_blend(nn.Module):
     def test_rand_mu_var(self, masked_input, batch_size = 80):
         # fixed mean and std for checking separation recon and content space 
 
-        mask_feat = self.Content_Encoder_module(masked_input) # 
+        mask_feat = self.Content_Encoder_module(masked_input) #
         
         rand_latent = torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()
 
