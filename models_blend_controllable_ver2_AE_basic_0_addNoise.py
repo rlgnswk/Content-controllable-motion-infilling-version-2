@@ -170,7 +170,7 @@ class Style_Encoder_VAE(nn.Module):
             #logvar = self.Conv_block_std(x)
             #latent = self.sampling(mean, logvar)
 
-            return mean.repeat(1,1,1,8) #mean, logvar
+            return (mean + (torch.randn_like(mean) * 0.001)).repeat(1,1,1,8) #var 0.1
 
             #return mean, std
 
