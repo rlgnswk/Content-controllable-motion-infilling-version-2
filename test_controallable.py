@@ -17,7 +17,7 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver2 as models
+import models_blend_controllable_ver2_AE as models
 
 import utils4blendtest as utils
 import data_load_blend_ver2 as data_load
@@ -33,11 +33,10 @@ parser.add_argument('--ValdatasetPath', type=str, default='C:/Users/VML/Desktop/
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/model_323_controllable_ver2.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0624_AE_basic_0_model_199.pt")
 parser.add_argument('--batchSize', type=int, default=10, help='input batch size for training')
 
 args = parser.parse_args()
-
 
 def main(args):
     
@@ -55,21 +54,22 @@ def main(args):
     else:
         model = models.Convolutional_blend().to(device)
     
-    #pretrained_path = "pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
+    #gt_pretrained_path = "pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
     GT_model = pretrain_models.Convolutional_AE().to(device)
-    #GT_model.load_state_dict(torch.load(pretrained_path))
+    #GT_model.load_state_dict(torch.load(gt_pretrained_path))
     GT_model.eval()
 
 
     #pretrained_modelpath = "/root/Motion_Style_Infilling/experiment/controllableFirst0609/model/model_300.pt"
+    #model_pretrained_modelpath ="pertrained/model_323_controllable_ver2.pt"
     model.load_state_dict(torch.load(args.pretrained))
     model.eval()
 
     NetD = models.Discriminator().to(device)
 
     saveUtils.save_log(str(args))
-    #saveUtils.save_log(str(summary(model, ((1,1,69,240), (1,1,69,30)))))
-    #saveUtils.save_log(str(summary(NetD, (1,1,69,240))))
+    saveUtils.save_log(str(summary(model, ((1,1,69,240), (1,1,69,30)))))
+    saveUtils.save_log(str(summary(NetD, (1,1,69,240))))
 
     valid_dataloader, valid_dataset = data_load.get_dataloader(args.ValdatasetPath , args.batchSize, IsNoise=False, \
                                                                             IsTrain=False, dataset_mean=None, dataset_std=None)
@@ -81,7 +81,7 @@ def main(args):
     saveUtils.save_log(log)
 
     #validation per epoch ############
-    for iter, item in enumerate(valid_dataloader):
+    for iternum, item in enumerate(valid_dataloader):
         model.eval()
         NetD.eval()
 
@@ -95,15 +95,18 @@ def main(args):
         blend_input = masked_input + blend_part
         
         with torch.no_grad():
-            
-            if iter%100 == 0:
+            if iternum%100 == 0:
                 gt_blended_image= GT_model(blend_input)
-                pred_affine, pred_recon = model(masked_input, blend_part_only)
-                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, pred_recon, iter)
+                pred_affine = model(masked_input, blend_part_only)
+                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, masked_input, iternum) 
+                random_sampling_output = model.test_rand_mu_var(masked_input, args.batchSize)
+                saveUtils.save_result_test(random_sampling_output, iternum, 0)
+                
                 for weight in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
-                    output = model.test_affine(masked_input, gt_image, blend_part_only, weight)
-                    saveUtils.save_result_test_Affine(output, iter, weight)
-                break    
-        
+                    control_output = model.test_control_interpolation(masked_input, blend_part_only, weight, args.batchSize)
+                    saveUtils.save_result_control_interpolation(control_output, weight)
+
+                break
+
 if __name__ == "__main__":
     main(args)

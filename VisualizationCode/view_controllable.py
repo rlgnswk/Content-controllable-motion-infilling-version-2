@@ -121,15 +121,15 @@ if __name__ == '__main__':
     #blend
     db_GT = 'epoch_0_gt_image.npy'
 
-    db_input = 'epoch_0_Masked_input.npy'
+    db_input = 'epoch_0_recon.npy'
  
-    db_ResultAp0 = 'TestOutput_0.0.npy' 
+    db_ResultAp0 = 'TestOutput_alpha0.0.npy' 
     
-    db_ResultAp4 = 'TestOutput_0.4.npy' 
+    db_ResultAp4 = 'TestOutput_alpha0.4.npy' 
     
-    db_ResultAp8 = 'TestOutput_0.8.npy' 
+    db_ResultAp8 = 'TestOutput_alpha0.8.npy' 
     
-    db_ResultAp10 = 'TestOutput_1.0.npy' 
+    db_ResultAp10 = 'TestOutput_alpha1.0.npy' 
     
     db_Blend_GT = 'epoch_0_gt_blend.npy'
     

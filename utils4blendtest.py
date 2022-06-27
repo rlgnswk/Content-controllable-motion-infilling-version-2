@@ -147,3 +147,8 @@ class saveData():
         output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         np.save(self.save_dir_validation + "/TestOutput_mean"+str(mean)+"_var"+str(std), output)
 
+    def save_result_control_interpolation(self, output, alpha):
+        output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        np.save(self.save_dir_validation + "/TestOutput_alpha"+str(alpha), output)
+
+

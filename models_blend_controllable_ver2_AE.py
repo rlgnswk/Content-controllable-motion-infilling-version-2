@@ -288,6 +288,21 @@ class Convolutional_blend(nn.Module):
 
         return out_test
 
+    def test_control_interpolation(self, masked_input, blend_part_only, alpha,  batch_size = 80):
+        # fixed mean and std for checking separation recon and content space 
+
+        mask_feat = self.Content_Encoder_module(masked_input) #
+        
+        #rand_latent = (torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()) * var + mu
+        motion_latent = self.Style_Encoder_module(blend_part_only)
+        #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
+        
+        interpolated_motion_latent = (1-alpha) * torch.zeros_like(mask_feat) + alpha * motion_latent
+
+        unified_latent = torch.cat((mask_feat, interpolated_motion_latent), 1)  #channel
+        out_test = self.Decoder_module(unified_latent)  
+
+        return out_test
 
 # Convolution Module
 class Conv_block(nn.Module):
