@@ -142,3 +142,8 @@ class saveData():
     def save_result_test_Affine(self, output, iter, alpha):
         output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         np.save(self.save_dir_validation + "/TestOutput_"+str(alpha), output)
+
+    def save_result_control_mu_var(self, output, mean, std):
+        output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        np.save(self.save_dir_validation + "/TestOutput_mean"+str(mean)+"_var"+str(std), output)
+

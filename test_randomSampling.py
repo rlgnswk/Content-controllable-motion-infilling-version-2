@@ -101,6 +101,12 @@ def main(args):
                 saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, masked_input, iternum) 
                 random_sampling_output = model.test_rand_mu_var(masked_input, args.batchSize)
                 saveUtils.save_result_test(random_sampling_output, iternum, 0)
+                
+                for mu in [-100, -50, -10, -5, 0, 5, 10 ,50 ,100]:
+                    for std in [100, 50 ,10 ,1, 0.1, 0.01, 0.001, 0.0001]:
+                        control_output = model.test_control_mu_var(masked_input, args.batchSize, mu = mu, var = std)
+                        saveUtils.save_result_control_mu_var(control_output, mu, std)
+
                 break
 
 if __name__ == "__main__":

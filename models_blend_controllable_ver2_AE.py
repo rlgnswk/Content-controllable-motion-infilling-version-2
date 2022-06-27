@@ -275,6 +275,20 @@ class Convolutional_blend(nn.Module):
 
         return out_test
 
+    def test_control_mu_var(self, masked_input, batch_size = 80, mu = 0, var =1.0):
+        # fixed mean and std for checking separation recon and content space 
+
+        mask_feat = self.Content_Encoder_module(masked_input) #
+        
+        rand_latent = (torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()) * var + mu
+
+        #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
+        unified_latent = torch.cat((mask_feat, rand_latent), 1)  #channel 
+        out_test = self.Decoder_module(unified_latent)  
+
+        return out_test
+
+
 # Convolution Module
 class Conv_block(nn.Module):
       def __init__(self, input_channels, output_channels, kernel_size=3, stride=1, padding=1, pooling=2):
