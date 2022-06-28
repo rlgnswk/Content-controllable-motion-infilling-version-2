@@ -127,8 +127,8 @@ def main(args):
                 p.requires_grad = True
             NetD.zero_grad()
 
-            #real = NetD(gt_image)
-            real = NetD(blend_gt)
+            real = NetD(gt_image)
+            #real = NetD(blend_gt)
             true_labels = Variable(torch.ones_like(real))
             loss_D_real = criterion_D(real, true_labels.detach())
             
