@@ -189,7 +189,7 @@ if __name__ == '__main__':
             database_ResultAp0[index0:index0 + 1],
             database_ResultAp4[index0:index0 + 1],
             database_ResultAp8[index0:index0 + 1],
-            database_ResultAp10[index0:index0 + 1],
+            database_ResultAp10[index0:index0 + 1]
             #database_GT_blend[index0:index0 + 1],
         ])
         
