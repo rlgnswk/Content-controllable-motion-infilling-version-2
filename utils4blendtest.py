@@ -151,4 +151,21 @@ class saveData():
         output = output.detach().squeeze(1).permute(0,2,1).cpu().numpy()
         np.save(self.save_dir_validation + "/TestOutput_alpha"+str(alpha), output)
 
+    def save_result_substract(self, sub_output12, sub_output21, blend_part, blend_part2):
+        sub_output12 = sub_output12.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        sub_output21 = sub_output21.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        blend_part = blend_part.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        blend_part2 = blend_part2.detach().squeeze(1).permute(0,2,1).cpu().numpy()
 
+        np.save(self.save_dir_validation + "/TestOutput_sub_output12", sub_output12)
+        np.save(self.save_dir_validation + "/TestOutput_sub_output21", sub_output21)
+        np.save(self.save_dir_validation + "/TestOutput_blend_part1", blend_part)
+        np.save(self.save_dir_validation + "/TestOutput_blend_part2", blend_part2)
+
+    def save_result_motionAB(self, blend_part, blend_part2):
+
+        blend_part = blend_part.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+        blend_part2 = blend_part2.detach().squeeze(1).permute(0,2,1).cpu().numpy()
+
+        np.save(self.save_dir_validation + "/TestOutput_blend_part1", blend_part)
+        np.save(self.save_dir_validation + "/TestOutput_blend_part2", blend_part2)

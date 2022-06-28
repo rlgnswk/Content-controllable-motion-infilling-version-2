@@ -289,7 +289,7 @@ class Convolutional_blend(nn.Module):
         return out_test
 
     def test_control_interpolation(self, masked_input, blend_part_only, alpha,  batch_size = 80):
-        # fixed mean and std for checking separation recon and content space 
+        
 
         mask_feat = self.Content_Encoder_module(masked_input) #
         
@@ -303,6 +303,45 @@ class Convolutional_blend(nn.Module):
         out_test = self.Decoder_module(unified_latent)  
 
         return out_test
+
+    def test_control_interpolation_2(self, masked_input, blend_part_only1, blend_part_only2, alpha,  batch_size = 80):
+        
+
+        mask_feat = self.Content_Encoder_module(masked_input) #
+        
+        #rand_latent = (torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()) * var + mu
+        motion_latent1 = self.Style_Encoder_module(blend_part_only1)
+        motion_latent2 = self.Style_Encoder_module(blend_part_only2)
+        #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
+        
+        interpolated_motion_latent = (1-alpha) * motion_latent1 + alpha * motion_latent2
+
+        unified_latent = torch.cat((mask_feat, interpolated_motion_latent), 1)  #channel
+        out_test = self.Decoder_module(unified_latent)  
+
+        return out_test
+
+    def test_substract(self, masked_input, blend_part_only1, blend_part_only2,  batch_size = 80):
+        # fixed mean and std for checking separation recon and content space 
+
+        mask_feat = self.Content_Encoder_module(masked_input) #
+        
+        #rand_latent = (torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()) * var + mu
+        motion_latent1 = self.Style_Encoder_module(blend_part_only1)
+        motion_latent2 = self.Style_Encoder_module(blend_part_only2)
+        #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
+        
+        substracted_motion_latent12 = motion_latent1 - motion_latent2
+        substracted_motion_latent21 = motion_latent2 - motion_latent1
+
+
+        unified_latent12 = torch.cat((mask_feat, substracted_motion_latent12), 1)  #channel
+        out_test12 = self.Decoder_module(unified_latent12)  
+
+        unified_latent21 = torch.cat((mask_feat, substracted_motion_latent21), 1)  #channel
+        out_test21 = self.Decoder_module(unified_latent21)  
+
+        return out_test12, out_test21
 
 # Convolution Module
 class Conv_block(nn.Module):
