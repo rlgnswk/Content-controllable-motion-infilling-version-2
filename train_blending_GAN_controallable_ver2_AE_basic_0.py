@@ -210,7 +210,6 @@ def main(args):
                 #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
                 #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
                  
-                
                 real = NetD(gt_image)
                 fake = NetD(pred_affine)
 
