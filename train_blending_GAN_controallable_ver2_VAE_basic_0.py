@@ -121,8 +121,8 @@ def main(args):
 
             pred_affine, pred_recon, mean, logvar = model(masked_input, blend_part_only)
             
-            concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
-            concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
+            #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
+            #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
                         
 
             #NetD training
@@ -130,12 +130,12 @@ def main(args):
                 p.requires_grad = True
             NetD.zero_grad()
 
-            #real = NetD(gt_image)
-            real = NetD(concat_reals)
+            real = NetD(gt_image)
+            #real = NetD(concat_reals)
             true_labels = Variable(torch.ones_like(real))
             loss_D_real = criterion_D(real, true_labels.detach())
             
-            fake = NetD(concat_fakes.detach())
+            fake = NetD(pred_affine.detach())
             fake_labels = Variable(torch.zeros_like(fake))
             loss_D_fake = criterion_D(fake, fake_labels.detach())            
             
@@ -154,7 +154,7 @@ def main(args):
             #print(mean.reshape(mean.shape[0], mean.shape[1], -1).shape)  
             kld_loss = torch.mean(-0.5 * torch.sum(1 + logvar.reshape(logvar.shape[0], logvar.shape[1], -1) - mean.reshape(mean.shape[0], mean.shape[1], -1) ** 2 - logvar.exp().reshape(logvar.shape[0], logvar.shape[1], -1), dim = 1), dim = 0).sum()
             #print(kld_loss.shape)
-            loss_G = criterion_G(NetD(concat_fakes), true_labels.detach())
+            loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
                 
             total_train_loss = recon_loss + loss_G + kld_loss
             optimizer.zero_grad()
@@ -207,17 +207,17 @@ def main(args):
                 gt_blended_image= GT_model(blend_input).detach()
                 pred_affine, pred_recon, mean, logvar = model(masked_input, blend_part_only)
                 
-                concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
-                concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
+                #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
+                #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
                  
-                real = NetD(concat_reals)
-                fake = NetD(concat_fakes)
+                real = NetD(gt_image)
+                fake = NetD(pred_affine)
 
             loss_D_real = criterion_D(real, true_labels.detach())
             loss_D_fake = criterion_D(fake, fake_labels.detach())  
             recon_loss = loss_function(pred_affine, gt_blended_image.detach()) 
             
-            loss_G = criterion_G(NetD(concat_fakes), true_labels.detach())
+            loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
             kld_loss = torch.mean(-0.5 * torch.sum(1 + logvar.reshape(logvar.shape[0], logvar.shape[1], -1) - mean.reshape(mean.shape[0], mean.shape[1], -1) ** 2 - logvar.exp().reshape(logvar.shape[0], logvar.shape[1], -1), dim = 1), dim = 0).sum()
             
             total_v_loss = (recon_loss + loss_G).item() + loss_function(pred_recon, gt_image.detach())
@@ -231,7 +231,7 @@ def main(args):
         #gt_image = data_load.De_normalize_data_dist(gt_image.detach().squeeze(1).permute(0,2,1).cpu().numpy(), 0.0, 1.0)
         #masked_input = data_load.De_normalize_data_dist(masked_input.detach().squeeze(1).permute(0,2,1).cpu().numpy(), 0.0, 1.0)
         
-        saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, masked_input, num_epoch)
+        saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, pred_recon, num_epoch)
         valid_epoch_loss = total_v_loss/len(valid_dataloader)
         valid_epoch_recon_loss = total_v_recon_loss/len(valid_dataloader)
         valid_epoch_G_loss = total_v_G_loss/len(valid_dataloader)

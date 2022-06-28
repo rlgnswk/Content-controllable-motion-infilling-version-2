@@ -221,14 +221,15 @@ class Convolutional_blend(nn.Module):
     def forward(self, masked_input, blend_part_only):
         mask_feat = self.Content_Encoder_module(masked_input) # 
         
-        trans_latent, recon_latent, mean, logvar = self.Style_Encoder_module(blend_part_only) #mean and var
+        trans_latent, _, mean, logvar = self.Style_Encoder_module(blend_part_only) #mean and var
 
         #print(mask_feat.shape)
         #print(motion_latent.shape)
         unified_latent = torch.cat((mask_feat, trans_latent), 1)  #channel 
         #self.unified_latent = unified_latent
         out_affine = self.Decoder_module(unified_latent)
-    
+        
+        recon_latent = torch.zeros_like(mask_feat)
         unified_recon = torch.cat((mask_feat, recon_latent), 1) 
         out_recon = self.Decoder_module(unified_recon)        
 
