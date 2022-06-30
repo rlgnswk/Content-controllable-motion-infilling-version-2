@@ -17,10 +17,10 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver2_AE_basic_0_Z_regul as models
+import models_blend_controllable_ver2_AE_basic_0 as models
 
 import utils4blend as utils
-import data_load_blend_ver2 as data_load
+import data_load_blend_ver2_1frame as data_load
 #input sample of size 69 × 240
 #latent space 3 × 8 × 256 tensor
 
@@ -88,11 +88,6 @@ def main(args):
     print(log)
     saveUtils.save_log(log)
 
-    # replaced torch.rand_like
-    desired_m = 0 
-    desired_std  = 1.0
-    kl_loss = nn.KLDivLoss(reduction="batchmean")
-
 
     for num_epoch in range(args.numEpoch):
         
@@ -101,7 +96,7 @@ def main(args):
         total_recon_loss = 0
         total_G_loss = 0
         total_D_loss = 0
-        total_z_regul_loss = 0
+        total_kld_loss = 0
 
         total_v_loss = 0
 
@@ -124,7 +119,7 @@ def main(args):
 
             gt_blended_image= GT_model(blend_input).detach()
 
-            pred_affine, pred_recon, transition_latent = model(masked_input, blend_part_only)
+            pred_affine, pred_recon = model(masked_input, blend_part_only)
             
             #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
             #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
@@ -160,13 +155,8 @@ def main(args):
             kld_loss = 0
             #print(kld_loss.shape)
             loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
-            #loss_Z_regularizer = (abs(transition_latent)**2).mean()
-            input_distribution = F.log_softmax(transition_latent, dim = 0)
-            target_distribution = F.softmax(torch.rand_like(transition_latent), dim = 0)
-            loss_Z_regularizer = kl_loss(input_distribution, target_distribution) # tempral named
-
-
-            total_train_loss = recon_loss + loss_G + loss_Z_regularizer#+ kld_loss
+                
+            total_train_loss = recon_loss + loss_G #+ kld_loss
             optimizer.zero_grad()
             total_train_loss.backward()
             optimizer.step()
@@ -175,16 +165,16 @@ def main(args):
             total_recon_loss += recon_loss.item()
             total_G_loss += loss_G.item()
             total_D_loss += total_loss_D.item()
-            total_z_regul_loss += loss_Z_regularizer.item() # kld_loss.item()
+            total_kld_loss += kld_loss # kld_loss.item()
 
             if iter % print_interval == 0 and iter != 0:
                 train_iter_loss =  total_loss * 0.01
                 train_recon_iter_loss =  total_recon_loss * 0.01
                 train_G_iter_loss = total_G_loss * 0.01
                 train_D_iter_loss = total_D_loss * 0.01
-                train_z_iter_loss = total_z_regul_loss * 0.01
-                log = "Train: [Epoch %d][Iter %d] [total_train_iter_loss(G): %.4f] [train_D_iter_loss: %.4f] [recon loss: %.4f] [G loss: %.4f] [KL_loss: %.4f]" %\
-                                             (num_epoch, iter, train_iter_loss, train_D_iter_loss, train_recon_iter_loss, train_G_iter_loss, train_z_iter_loss)
+                train_kld_iter_loss = total_kld_loss * 0.01
+                log = "Train: [Epoch %d][Iter %d] [total_train_iter_loss(G): %.4f] [train_D_iter_loss: %.4f] [recon loss: %.4f] [G loss: %.4f] [train_kld_iter_loss: %.4f]" %\
+                                             (num_epoch, iter, train_iter_loss, train_D_iter_loss, train_recon_iter_loss, train_G_iter_loss, train_kld_iter_loss)
                 
                 print(log)
                 saveUtils.save_log(log)
@@ -192,12 +182,13 @@ def main(args):
                 writer.add_scalar("train_G_iter_loss/ iter", train_G_iter_loss, print_num)
                 writer.add_scalar("train_D_iter_loss/ iter", train_D_iter_loss, print_num)
                 writer.add_scalar("train_recon_iter_loss/ iter", train_recon_iter_loss, print_num)
-                writer.add_scalar("train_z_iter_loss/ iter", train_z_iter_loss, print_num)
+                writer.add_scalar("train_kld_iter_loss/ iter", train_kld_iter_loss, print_num)
+
                 total_loss = 0
                 total_recon_loss = 0
                 total_G_loss = 0
                 total_D_loss = 0
-                total_z_regul_loss = 0
+                total_kld_loss = 0
         #validation per epoch ############
         for iter, item in enumerate(valid_dataloader):
             model.eval()
@@ -214,7 +205,7 @@ def main(args):
             
             with torch.no_grad():
                 gt_blended_image= GT_model(blend_input).detach()
-                pred_affine, pred_recon, transition_latent = model(masked_input, blend_part_only)
+                pred_affine, pred_recon = model(masked_input, blend_part_only)
                 
                 #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
                 #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
@@ -227,19 +218,13 @@ def main(args):
             recon_loss = loss_function(pred_affine, gt_blended_image.detach())  + loss_function(pred_recon, gt_image.detach())
             
             loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
-            #loss_Z_regularizer = (abs(transition_latent)**2).mean()
-            input_distribution = F.log_softmax(transition_latent, dim = 0)
-            target_distribution = F.softmax(torch.rand_like(transition_latent), dim = 0)
-            loss_Z_regularizer = kl_loss(input_distribution, target_distribution) # tempral named
-
             #kld_loss = torch.mean(-0.5 * torch.sum(1 + logvar.reshape(logvar.shape[0], logvar.shape[1], -1) - mean.reshape(mean.shape[0], mean.shape[1], -1) ** 2 - logvar.exp().reshape(logvar.shape[0], logvar.shape[1], -1), dim = 1), dim = 0).sum()
             kld_loss = 0
             total_v_loss = (recon_loss + loss_G).item()
             total_v_recon_loss = recon_loss.item()
             total_v_G_loss = loss_G.item()
             total_v_D_loss = loss_D_real.item() + loss_D_fake.item()
-            #total_kld_loss = kld_loss#kld_loss.item()
-            total_v_z_loss = loss_Z_regularizer.item()
+            total_kld_loss = kld_loss#kld_loss.item()
             model.train()
             
         #pred_affine = data_load.De_normalize_data_dist(pred_affine.detach().squeeze(1).permute(0,2,1).cpu().numpy(), 0.0, 1.0)
@@ -251,10 +236,9 @@ def main(args):
         valid_epoch_recon_loss = total_v_recon_loss/len(valid_dataloader)
         valid_epoch_G_loss = total_v_G_loss/len(valid_dataloader)
         valid_epoch_D_loss = total_v_D_loss/len(valid_dataloader)
-        #valid_epoch_kld_loss = total_kld_loss/len(valid_dataloader)
-        valid_epoch_z_loss = total_v_z_loss/len(valid_dataloader)
-        log = "Valid: [Epoch %d] [valid_epoch_loss(G): %.4f] [valid_epoch_D_loss: %.4f] [valid_epoch_recon_loss: %.4f] [valid_epoch_G_loss: %.4f] [valid_epoch_KL_loss: %.4f]" %\
-                                             (num_epoch, valid_epoch_loss, valid_epoch_D_loss, valid_epoch_recon_loss, valid_epoch_G_loss, valid_epoch_z_loss)
+        valid_epoch_kld_loss = total_kld_loss/len(valid_dataloader)
+        log = "Valid: [Epoch %d] [valid_epoch_loss(G): %.4f] [valid_epoch_D_loss: %.4f] [valid_epoch_recon_loss: %.4f] [valid_epoch_G_loss: %.4f] [valid_epoch_kld_loss: %.4f]" %\
+                                             (num_epoch, valid_epoch_loss, valid_epoch_D_loss, valid_epoch_recon_loss, valid_epoch_G_loss, valid_epoch_kld_loss)
         
         print(log)
         saveUtils.save_log(log)
@@ -262,8 +246,7 @@ def main(args):
         writer.add_scalar("valid_epoch_recon_loss/ Epoch", valid_epoch_recon_loss, num_epoch) 
         writer.add_scalar("valid_epoch_G_loss/ Epoch", valid_epoch_G_loss, num_epoch) 
         writer.add_scalar("valid_epoch_D_loss/ Epoch", valid_epoch_D_loss, num_epoch)
-        #writer.add_scalar("valid_epoch_kld_loss/ Epoch", valid_epoch_kld_loss, num_epoch)
-        writer.add_scalar("valid_epoch_z_loss/ Epoch", valid_epoch_z_loss, num_epoch)
+        writer.add_scalar("valid_epoch_kld_loss/ Epoch", valid_epoch_kld_loss, num_epoch)
         saveUtils.save_model(model, num_epoch) # save model per epoch
         #validation per epoch ############
         

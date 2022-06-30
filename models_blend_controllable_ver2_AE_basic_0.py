@@ -166,7 +166,7 @@ class Style_Encoder_VAE(nn.Module):
             x = self.Conv_block4(x)
             #print("x", x.shape)
             mean = self.Conv_block5(x) # 256 x 3 × 1
-            #print("mean", mean.repeat(1,1,1,8).shape)
+            #print("mean", mean.shape)
             #logvar = self.Conv_block_std(x)
             #latent = self.sampling(mean, logvar)
 
