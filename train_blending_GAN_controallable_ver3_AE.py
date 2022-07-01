@@ -28,10 +28,10 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str)
 parser.add_argument('--model_type', type=str, default='AE') 
-#parser.add_argument('--datasetPath', type=str, default='/input/MotionInfillingData/train_data')
-#parser.add_argument('--ValdatasetPath', type=str, default='/input/MotionInfillingData/valid_data')
-parser.add_argument('--datasetPath', type=str, default='./train_data')
-parser.add_argument('--ValdatasetPath', type=str, default='./valid_data')
+parser.add_argument('--datasetPath', type=str, default='/input/MotionInfillingData/train_data')
+parser.add_argument('--ValdatasetPath', type=str, default='/input/MotionInfillingData/valid_data')
+#parser.add_argument('--datasetPath', type=str, default='./train_data')
+#parser.add_argument('--ValdatasetPath', type=str, default='./valid_data')
 parser.add_argument('--saveDir', type=str, default='/personal/GiHoonKim/experiment4SigPoster')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 parser.add_argument('--numEpoch', type=int, default=200, help='input batch size for training')
@@ -56,8 +56,8 @@ def main(args):
     else:
         model = models.Convolutional_blend().to(device)
     
-    #pretrained_path = "/root/Motion_Style_Infilling/pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
-    pretrained_path = "./pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
+    pretrained_path = "/root/Motion_Style_Infilling/pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
+    #pretrained_path = "./pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
     GT_model = pretrain_models.Convolutional_AE().to(device)
     GT_model.load_state_dict(torch.load(pretrained_path))
     GT_model.eval()
