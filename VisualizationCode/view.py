@@ -151,12 +151,12 @@ if __name__ == '__main__':
         #print("database[index0:index0 + 1]: ",database[index0:index0 + 1].shape)
         animation_plot([
             database_GT[index0:index0 + 1],
-            database_recon_GT[index0:index0 + 1],
+            #database_recon_GT[index0:index0 + 1],
             
             database_Input[index0:index0 + 1],
             
             database_Results[index0:index0 + 1],
-            database_GT2[index0:index0 + 1]
+            #database_GT2[index0:index0 + 1]
         ])
         
         

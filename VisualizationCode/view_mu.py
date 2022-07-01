@@ -114,9 +114,9 @@ if __name__ == '__main__':
 
 
     #blend
-    db_GT = 'epoch_'+str(epoch)+'_blend_input.npy'
+    db_GT = 'epoch_'+str(epoch)+'_gt_image.npy'
     #db_Input = 'epoch_'+str(epoch)+'_Masked_input.npy'
-    db_Input = 'epoch_'+str(epoch)+'_pred.npy'
+    db_Input = 'epoch_'+str(epoch)+'_masked_input.npy'
     #for mu in [-100, -50, -10, -5, 0, 5, 10 ,50 ,100]:
     #for std in [100, 50 ,10 ,1, 0.1, 0.01, 0.001, 0.0001]:
     db_Results_rand_100 = 'TestOutput_mean'+str(-100)+'_var'+str(args.std)+'.npy'

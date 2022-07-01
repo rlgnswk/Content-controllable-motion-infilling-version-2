@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='C:/Users/VML/Desktop/
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/0629_AE_basic_0_Z_regul_model_199.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0624_AE_basic_0_model_199.pt")
 parser.add_argument('--batchSize', type=int, default=20, help='input batch size for training')
 
 args = parser.parse_args()
@@ -106,7 +106,7 @@ def main(args):
 
                 for mu in [-100, -50, -10, -5, 0, 5, 10 ,50 ,100]:
                     for std in [100, 50 ,10 ,1, 0.1, 0.01, 0.001, 0.0001]:
-                        control_output = model.test_control_mu_var(masked_input, batch_size = args.batchSize, mu = mu, var = std)
+                        control_output = model.test_rand_mu_var(masked_input, batch_size = args.batchSize)
                         saveUtils.save_result_control_mu_var(control_output, mu, std)
 
                 break

@@ -135,7 +135,8 @@ class MotionLoader(Dataset):
                 #In test phase, center of the data are masked
                 masking = np.zeros((orig_height, mask_width))# generate zeros matrix for masking: orig_height x mask_width
                 #index = random.randint(0, orig_width - mask_width)# sampling the start point of masking 
-                index = 120 - mask_width // 2
+                #index = 120 - mask_width // 2
+                index = 0
                 masked_input[: , index : index+mask_width] = masking # masking
                 
                 
