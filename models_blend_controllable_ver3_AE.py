@@ -266,7 +266,7 @@ class Convolutional_blend(nn.Module):
 
         mask_feat = self.Content_Encoder_module(masked_input) # 
         
-        rand_latent = torch.rand(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()
+        rand_latent = torch.randn(batch_size, 256, 3, 1).repeat(1,1,1,8).cuda()
 
         #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean.cuda(), blend_std.cuda())
         unified_latent = torch.cat((mask_feat, rand_latent), 1)  #channel 
