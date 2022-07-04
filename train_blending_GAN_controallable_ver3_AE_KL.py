@@ -109,7 +109,7 @@ def main(args):
         total_v_D_loss = 0
         total_v_kld_loss = 0
  
-        for iter, item in enumerate(train_dataloader):
+        for iter_num, item in enumerate(train_dataloader):
             print_num +=1
             
             masked_input, gt_image, blend_part, blend_gt, blend_part_only, maskpart = item
@@ -162,11 +162,20 @@ def main(args):
             loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
             
              
-            target_distribution = F.softmax(torch.randn_like(blend_part_latent), dim=0)
+            #target_distribution = F.softmax(torch.randn_like(blend_part_latent), dim=0)
+            #kld_loss = kl_loss(F.log_softmax(blend_part_latent, dim=0), target_distribution)  + kl_loss(F.log_softmax(mask_part_latent, dim=0), target_distribution)
 
-            kld_loss = kl_loss(F.log_softmax(blend_part_latent, dim=0), target_distribution)  + kl_loss(F.log_softmax(mask_part_latent, dim=0), target_distribution)
+            blend_part_latent_mean = blend_part_latent.view(args.batchSize, -1).mean(1, keepdim=True)
+            blend_part_latent_logvar = blend_part_latent.view(args.batchSize, -1).var(1, keepdim=True).log()
 
-            total_train_loss = recon_loss + kld_loss
+            mask_part_latent_mean = mask_part_latent.view(args.batchSize, -1).mean(1, keepdim=True)
+            mask_part_latent_logvar = mask_part_latent.view(args.batchSize, -1).var(1, keepdim=True).log()
+
+            kld_loss = torch.mean(-0.5 * torch.sum(1 + blend_part_latent_logvar - blend_part_latent_mean.pow(2) - blend_part_latent_logvar.exp(),dim=1), dim=0) \
+                         + torch.mean(-0.5 * torch.sum(1 + mask_part_latent_logvar - mask_part_latent_mean.pow(2) - mask_part_latent_logvar.exp(),dim=1), dim=0)
+            
+            #total_train_loss = recon_loss + kld_loss
+            total_train_loss = recon_loss + kld_loss + loss_G 
             optimizer.zero_grad()
             total_train_loss.backward()
             optimizer.step()
@@ -177,14 +186,14 @@ def main(args):
             total_D_loss += total_loss_D.item()
             total_kld_loss += kld_loss # kld_loss.item()
 
-            if iter % print_interval == 0 and iter != 0:
+            if iter_num % print_interval == 0 and iter_num != 0:
                 train_iter_loss =  total_loss * 0.01
                 train_recon_iter_loss =  total_recon_loss * 0.01
                 train_G_iter_loss = total_G_loss * 0.01
                 train_D_iter_loss = total_D_loss * 0.01
                 train_kld_iter_loss = total_kld_loss * 0.01
                 log = "Train: [Epoch %d][Iter %d] [total_train_iter_loss(G): %.4f] [train_D_iter_loss: %.4f] [recon loss: %.4f] [G loss: %.4f] [train_kld_iter_loss: %.4f]" %\
-                                             (num_epoch, iter, train_iter_loss, train_D_iter_loss, train_recon_iter_loss, train_G_iter_loss, train_kld_iter_loss)
+                                             (num_epoch, iter_num, train_iter_loss, train_D_iter_loss, train_recon_iter_loss, train_G_iter_loss, train_kld_iter_loss)
                 
                 print(log)
                 saveUtils.save_log(log)
@@ -200,7 +209,7 @@ def main(args):
                 total_D_loss = 0
                 total_kld_loss = 0
         #validation per epoch ############
-        for iter, item in enumerate(valid_dataloader):
+        for iter_num, item in enumerate(valid_dataloader):
             model.eval()
             NetD.eval()
 
@@ -230,11 +239,22 @@ def main(args):
             
             loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
             #kld_loss = torch.mean(-0.5 * torch.sum(1 + logvar.reshape(logvar.shape[0], logvar.shape[1], -1) - mean.reshape(mean.shape[0], mean.shape[1], -1) ** 2 - logvar.exp().reshape(logvar.shape[0], logvar.shape[1], -1), dim = 1), dim = 0).sum()
-            target_distribution = F.softmax(torch.randn_like(blend_part_latent), dim=0)
+            #target_distribution = F.softmax(torch.randn_like(blend_part_latent), dim=0)
 
-            kld_loss = kl_loss(F.log_softmax(blend_part_latent, dim=0), target_distribution) + kl_loss(F.log_softmax(mask_part_latent, dim=0), target_distribution)
+            #kld_loss = kl_loss(F.log_softmax(blend_part_latent, dim=0), target_distribution) + kl_loss(F.log_softmax(mask_part_latent, dim=0), target_distribution)
 
-            total_v_loss = (recon_loss + kld_loss).item()
+            blend_part_latent_mean = blend_part_latent.view(args.batchSize, -1).mean(1, keepdim=True)
+            blend_part_latent_logvar = blend_part_latent.view(args.batchSize, -1).var(1, keepdim=True).log()
+
+            mask_part_latent_mean = mask_part_latent.view(args.batchSize, -1).mean(1, keepdim=True)
+            mask_part_latent_logvar = mask_part_latent.view(args.batchSize, -1).var(1, keepdim=True).log()
+
+            kld_loss = torch.mean(-0.5 * torch.sum(1 + blend_part_latent_logvar - blend_part_latent_mean.pow(2) - blend_part_latent_logvar.exp(),dim=1), dim=0) \
+                         + torch.mean(-0.5 * torch.sum(1 + mask_part_latent_logvar - mask_part_latent_mean.pow(2) - mask_part_latent_logvar.exp(),dim=1), dim=0)
+            
+
+            #total_v_loss = (recon_loss + kld_loss).item()
+            total_v_loss = (recon_loss + loss_G + kld_loss).item()
             total_v_recon_loss = recon_loss.item()
             total_v_G_loss = loss_G.item()
             total_v_D_loss = loss_D_real.item() + loss_D_fake.item()
