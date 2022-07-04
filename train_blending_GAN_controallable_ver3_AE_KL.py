@@ -56,7 +56,7 @@ def main(args):
     else:
         model = models.Convolutional_blend().to(device)
     
-    pretrained_path = "/root/Motion_Style_Infilling/pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
+    pretrained_path = "/root/proj-various-conditional-motion-transition/pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
     #pretrained_path = "./pertrained/0530maskDone1CurriculLearning_bn_model_199.pt"
     GT_model = pretrain_models.Convolutional_AE().to(device)
     GT_model.load_state_dict(torch.load(pretrained_path))
@@ -66,7 +66,7 @@ def main(args):
 
     saveUtils.save_log(str(args))
     #saveUtils.save_log(str(summary(model, ((1,1,69,240), (1,1,69,30)))))
-    saveUtils.save_log(str(summary(NetD, (1,1,69,240))))
+    #saveUtils.save_log(str(summary(NetD, (1,1,69,240))))
 
     train_dataloader, train_dataset = data_load.get_dataloader(args.datasetPath , args.batchSize, IsNoise=False, \
                                                                             IsTrain=True, dataset_mean=None, dataset_std=None)
@@ -91,6 +91,7 @@ def main(args):
     print(log)
     saveUtils.save_log(log)
 
+    kl_loss = nn.KLDivLoss(reduction="batchmean")
 
     for num_epoch in range(args.numEpoch):
         
@@ -123,7 +124,7 @@ def main(args):
 
             gt_blended_image= GT_model(blend_input).detach()
 
-            pred_affine, pred_recon, _, _ = model(masked_input, blend_part_only, maskpart)
+            pred_affine, pred_recon, blend_part_latent, mask_part_latent = model(masked_input, blend_part_only, maskpart)
             
             #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
             #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
@@ -156,11 +157,16 @@ def main(args):
             #print(mean.shape)
             #print(mean.reshape(mean.shape[0], mean.shape[1], -1).shape)  
             #kld_loss = torch.mean(-0.5 * torch.sum(1 + logvar.reshape(logvar.shape[0], logvar.shape[1], -1) - mean.reshape(mean.shape[0], mean.shape[1], -1) ** 2 - logvar.exp().reshape(logvar.shape[0], logvar.shape[1], -1), dim = 1), dim = 0).sum()
-            kld_loss = 0
+            #kld_loss = 0
             #print(kld_loss.shape)
             loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
-                
-            total_train_loss = recon_loss + loss_G #+ kld_loss
+            
+             
+            target_distribution = F.softmax(torch.randn_like(blend_part_latent), dim=0)
+
+            kld_loss = kl_loss(F.log_softmax(blend_part_latent, dim=0), target_distribution)  + kl_loss(F.log_softmax(mask_part_latent, dim=0), target_distribution)
+
+            total_train_loss = recon_loss + kld_loss
             optimizer.zero_grad()
             total_train_loss.backward()
             optimizer.step()
@@ -210,7 +216,7 @@ def main(args):
             
             with torch.no_grad():
                 gt_blended_image= GT_model(blend_input).detach()
-                pred_affine, pred_recon, _, _ = model(masked_input, blend_part_only, maskpart)
+                pred_affine, pred_recon, blend_part_latent, mask_part_latent= model(masked_input, blend_part_only, maskpart)
                 
                 #concat_reals = torch.cat((blend_gt, gt_image), 0) #batch wise concat
                 #concat_fakes = torch.cat((pred_affine, pred_recon), 0) #batch wise concat
@@ -224,8 +230,11 @@ def main(args):
             
             loss_G = criterion_G(NetD(pred_affine), true_labels.detach())
             #kld_loss = torch.mean(-0.5 * torch.sum(1 + logvar.reshape(logvar.shape[0], logvar.shape[1], -1) - mean.reshape(mean.shape[0], mean.shape[1], -1) ** 2 - logvar.exp().reshape(logvar.shape[0], logvar.shape[1], -1), dim = 1), dim = 0).sum()
-            kld_loss = 0
-            total_v_loss = (recon_loss + loss_G).item()
+            target_distribution = F.softmax(torch.randn_like(blend_part_latent), dim=0)
+
+            kld_loss = kl_loss(F.log_softmax(blend_part_latent, dim=0), target_distribution) + kl_loss(F.log_softmax(mask_part_latent, dim=0), target_distribution)
+
+            total_v_loss = (recon_loss + kld_loss).item()
             total_v_recon_loss = recon_loss.item()
             total_v_G_loss = loss_G.item()
             total_v_D_loss = loss_D_real.item() + loss_D_fake.item()

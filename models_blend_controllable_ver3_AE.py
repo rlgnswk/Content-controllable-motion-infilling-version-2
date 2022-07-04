@@ -170,7 +170,7 @@ class Style_Encoder_VAE(nn.Module):
             #logvar = self.Conv_block_std(x)
             #latent = self.sampling(mean, logvar)
 
-            return mean.repeat(1,1,1,8) #mean, logvar
+            return mean#mean.repeat(1,1,1,8) #mean, logvar
 
             #return mean, std
 
@@ -223,15 +223,15 @@ class Convolutional_blend(nn.Module):
         mask_latent = self.Style_Encoder_module(mask_part_only)
         #print(mask_feat.shape)
         #print(motion_latent.shape)
-        unified_latent_affine = torch.cat((mask_feat, motion_latent), 1)
-        unified_latent_recon = torch.cat((mask_feat, mask_latent), 1)  #channel 
+        unified_latent_affine = torch.cat((mask_feat, motion_latent.repeat(1,1,1,8)), 1)
+        unified_latent_recon = torch.cat((mask_feat, mask_latent.repeat(1,1,1,8)), 1)  #channel 
         
         out_affine = self.Decoder_module(unified_latent_affine)
 
         #recon_latent = torch.cat((mask_feat, torch.zeros_like(mask_feat)), 1)  #when motion latent 0 -> basic result
         out_recon = self.Decoder_module(unified_latent_recon)        
 
-        return out_affine, out_recon
+        return out_affine, out_recon, motion_latent, mask_latent
 
 
     def forward_content_encoder(self, blend_gt):
