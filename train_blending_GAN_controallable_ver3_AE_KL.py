@@ -174,8 +174,8 @@ def main(args):
             kld_loss = torch.mean(-0.5 * torch.sum(1 + blend_part_latent_logvar - blend_part_latent_mean.pow(2) - blend_part_latent_logvar.exp(),dim=1), dim=0) \
                          + torch.mean(-0.5 * torch.sum(1 + mask_part_latent_logvar - mask_part_latent_mean.pow(2) - mask_part_latent_logvar.exp(),dim=1), dim=0)
             
-            #total_train_loss = recon_loss + kld_loss
-            total_train_loss = recon_loss + kld_loss + loss_G 
+            total_train_loss = recon_loss + kld_loss
+            #total_train_loss = recon_loss + kld_loss + loss_G 
             optimizer.zero_grad()
             total_train_loss.backward()
             optimizer.step()
@@ -253,8 +253,8 @@ def main(args):
                          + torch.mean(-0.5 * torch.sum(1 + mask_part_latent_logvar - mask_part_latent_mean.pow(2) - mask_part_latent_logvar.exp(),dim=1), dim=0)
             
 
-            #total_v_loss = (recon_loss + kld_loss).item()
-            total_v_loss = (recon_loss + loss_G + kld_loss).item()
+            total_v_loss = (recon_loss + kld_loss).item()
+            #total_v_loss = (recon_loss + loss_G + kld_loss).item()
             total_v_recon_loss = recon_loss.item()
             total_v_G_loss = loss_G.item()
             total_v_D_loss = loss_D_real.item() + loss_D_fake.item()
