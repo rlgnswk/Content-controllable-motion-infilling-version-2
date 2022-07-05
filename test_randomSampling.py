@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='./valid_data')
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/0705_AE_ver5_fc_model_33.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0705_plus_conv_last_wo_ReLU_model_30.pt")
 parser.add_argument('--batchSize', type=int, default=20, help='input batch size for training')
 
 args = parser.parse_args()
