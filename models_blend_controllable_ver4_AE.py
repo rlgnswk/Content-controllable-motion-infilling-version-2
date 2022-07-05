@@ -226,7 +226,7 @@ class Convolutional_blend(nn.Module):
         #unified_latent_affine = torch.cat((mask_feat, motion_latent.repeat(1,1,1,8)), 1)
         #unified_latent_recon = torch.cat((mask_feat, mask_latent.repeat(1,1,1,8)), 1)  #channel 
         
-        out_affine = self.Decoder_module(unified_latent_affine+ motion_latent.repeat(1,1,1,8))
+        out_affine = self.Decoder_module(mask_latent+ motion_latent.repeat(1,1,1,8))
 
         #recon_latent = torch.cat((mask_feat, torch.zeros_like(mask_feat)), 1)  #when motion latent 0 -> basic result
         out_recon = self.Decoder_module(mask_latent + mask_latent.repeat(1,1,1,8))        

@@ -83,7 +83,7 @@ class Decoder_module_upsampling(nn.Module):
         def __init__(self):
             super(Decoder_module_upsampling, self).__init__()
             # input latent size 3 × 8 × 256  - HWC
-            self.DeConv_block1 = DeConv_block_upsampling(input_channels = 256*2, output_channels = 256, kernel_size=3, stride=1, padding=1, size=(5,15))
+            self.DeConv_block1 = DeConv_block_upsampling(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, size=(5,15))
             self.DeConv_block2 = DeConv_block_upsampling(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, size=(9,30))
             self.DeConv_block3 = DeConv_block_upsampling(input_channels = 256, output_channels = 128, kernel_size=3, stride=1, padding=1, size=(18, 60))
             self.DeConv_block4 = DeConv_block_upsampling(input_channels = 128, output_channels = 64, kernel_size=3, stride=1, padding=1, size=(35, 120))
@@ -214,7 +214,7 @@ class Convolutional_blend(nn.Module):
 
         self.Decoder_module = Decoder_module_upsampling()
          
-        
+        self.Fc1 = nn.Linear(3*8*256 + 3*1*256, 3*8*256)       
 
     def forward(self, masked_input, blend_part_only, mask_part_only):
         mask_feat = self.Content_Encoder_module(masked_input) # 
@@ -223,13 +223,18 @@ class Convolutional_blend(nn.Module):
         mask_latent = self.Style_Encoder_module(mask_part_only)
         #print(mask_feat.shape)
         #print(motion_latent.shape)
-        unified_latent_affine = torch.cat((mask_feat, motion_latent.repeat(1,1,1,8)), 1)
-        unified_latent_recon = torch.cat((mask_feat, mask_latent.repeat(1,1,1,8)), 1)  #channel 
+
+        unified_latent_affine = torch.cat((mask_feat.view(mask_feat.size(0), -1), motion_latent.view(motion_latent.size(0), -1)), 1)
         
-        out_affine = self.Decoder_module(unified_latent_affine)
+        unified_latent_recon = torch.cat((mask_feat.view(mask_feat.size(0), -1), mask_latent.view(mask_latent.size(0), -1)), 1)  #channel 
+        
+        affine_latent = self.Fc1(unified_latent_affine).view(unified_latent_affine.size(0), 256, 3, 8)
+        recon_latent = self.Fc1(unified_latent_recon).view(unified_latent_recon.size(0), 256, 3, 8)
+
+        out_affine = self.Decoder_module(affine_latent)
 
         #recon_latent = torch.cat((mask_feat, torch.zeros_like(mask_feat)), 1)  #when motion latent 0 -> basic result
-        out_recon = self.Decoder_module(unified_latent_recon)        
+        out_recon = self.Decoder_module(recon_latent)        
 
         return out_affine, out_recon, motion_latent, mask_latent
 
@@ -279,6 +284,7 @@ class Conv_block(nn.Module):
       def __init__(self, input_channels, output_channels, kernel_size=3, stride=1, padding=1, pooling=2):
         super(Conv_block, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, output_channels, kernel_size=kernel_size, stride=stride, padding=padding)
+        
         
         self.bn1 = nn.BatchNorm2d(output_channels)
 

@@ -17,7 +17,7 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver4_AE as models
+import models_blend_controllable_ver5_AE as models
 
 import utils4blend as utils
 import data_load_blend_ver3 as data_load
