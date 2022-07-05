@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='./valid_data')
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/0629AE_basic_0_JS_model_199.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0704_AE_not_GANloss_model_200.pt")
 parser.add_argument('--batchSize', type=int, default=20, help='input batch size for training')
 
 args = parser.parse_args()
@@ -99,7 +99,7 @@ def main(args):
         with torch.no_grad():
             if iternum%100 == 0:
                 gt_blended_image= GT_model(blend_input)
-                pred_affine, pred_recon = model(masked_input, blend_part_only, maskpart)
+                pred_affine, pred_recon, _, _ = model(masked_input, blend_part_only, maskpart)
                 saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, pred_recon, iternum) 
                 random_sampling_output = model.test_rand_mu_var(masked_input, args.batchSize)
                 saveUtils.save_result_test(random_sampling_output, iternum, 0)
