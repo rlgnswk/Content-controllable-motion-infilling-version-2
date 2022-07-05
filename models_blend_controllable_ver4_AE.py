@@ -151,7 +151,7 @@ class Style_Encoder_VAE(nn.Module):
             
             self.Conv_block_std = Conv_block_GroupNorm(input_channels = 256, output_channels = 256, kernel_size=3, stride=1, padding=1, pooling=2)
             # output latent size 3 × 8 × 256  - HWC B x 256 x 3 × 8 
-            
+            self.conv_last = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
             #self.Fc_mean = nn.Linear(69*30*128, 256)
             #self.Fc_std = nn.Linear(69*30*128, 256)
         def sampling(self, mean, logvar):
@@ -166,6 +166,7 @@ class Style_Encoder_VAE(nn.Module):
             x = self.Conv_block4(x)
             #print("x", x.shape)
             mean = self.Conv_block5(x) # 256 x 3 × 1
+            mean = self.conv_last(mean)
             #print("mean", mean.shape)
             #logvar = self.Conv_block_std(x)
             #latent = self.sampling(mean, logvar)
