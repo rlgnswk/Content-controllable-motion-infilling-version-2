@@ -17,7 +17,7 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver5_AE as models
+import models_blend_controllable_ver5_AE_ver2 as models
 
 import utils4blend as utils
 import data_load_blend_ver3 as data_load
@@ -173,7 +173,7 @@ def main(args):
 
             kld_loss = torch.mean(-0.5 * torch.sum(1 + blend_part_latent_logvar - blend_part_latent_mean.pow(2) - blend_part_latent_logvar.exp(),dim=1), dim=0) \
                          + torch.mean(-0.5 * torch.sum(1 + mask_part_latent_logvar - mask_part_latent_mean.pow(2) - mask_part_latent_logvar.exp(),dim=1), dim=0)
-            kld_loss = 10.0 * kld_loss
+            
             #total_train_loss = recon_loss + kld_loss
             total_train_loss = recon_loss + kld_loss + loss_G 
             optimizer.zero_grad()
