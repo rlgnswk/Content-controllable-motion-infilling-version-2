@@ -245,24 +245,26 @@ class Convolutional_blend(nn.Module):
     
         return blend_mean, blend_std
 
-    def test_affine(self, masked_input, mask_gt, blend_gt, alpha):
+    def test_interpolation(self, masked_input, blend_part_only, blend_part_only2, weight, batchSize):
         # make scalable output with a = [0.0, 0.1, ..., 1.0]
         # latent =  (1-a) * mask_feat + a * AdaIN_latent
 
         mask_feat = self.Content_Encoder_module(masked_input) # 
         
-        blend_mean, blend_std = self.Style_Encoder_module(blend_gt) #mean and var
-        
+        motion_latent1 = self.Style_Encoder_module(blend_part_only) 
+        motion_latent2 = self.Style_Encoder_module(blend_part_only2)
         #gt_mean, gt_std = self.Style_Encoder_module(mask_gt)
         
-        AdaIN_latent_blend = AdaIN(mask_feat, blend_mean, blend_std)
+        #AdaIN_latent_blend = AdaIN(mask_feat, blend_mean, blend_std)
 
         #AdaIN_latent_gt = AdaIN(mask_feat, gt_mean, gt_std)
-        mask_feat = IN(mask_feat)
-        target_latent =  (1-alpha) * mask_feat + alpha * AdaIN_latent_blend
+        #mask_feat = IN(mask_feat)
+        target_latent =  (1-weight) * motion_latent1 + weight * motion_latent2
 
-        
-        out_test = self.Decoder_module(target_latent)  
+        unified_latent_affine = torch.cat((mask_feat.view(mask_feat.size(0), -1), target_latent.view(target_latent.size(0), -1)), 1)
+        affine_latent = self.Fc1(unified_latent_affine).view(unified_latent_affine.size(0), 256, 3, 8)
+
+        out_test = self.Decoder_module(affine_latent)  
 
         return out_test
 

@@ -17,10 +17,10 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver2_VAE as models
+import models_blend_controllable_ver5_AE as models
 
 import utils4blendtest as utils
-import data_load_blend_ver2 as data_load
+import data_load_blend_ver3 as data_load
 #input sample of size 69 × 240
 #latent space 3 × 8 × 256 tensor
 

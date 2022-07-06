@@ -17,7 +17,7 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver2_AE as models
+import models_blend_controllable_ver5_AE as models
 
 import utils4blendtest as utils
 import data_load_blend_ver2_test as data_load
@@ -29,11 +29,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--name', type=str)
 parser.add_argument('--model_type', type=str, default='AE') 
 #parser.add_argument('--ValdatasetPath', type=str, default='/input/MotionInfillingData/valid_data')
-parser.add_argument('--ValdatasetPath', type=str, default='C:/Users/VML/Desktop/2022_Spring/Motion_Graphics/Final_project/downloadCode/valid_data')
+parser.add_argument('--ValdatasetPath', type=str, default='./valid_data')
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/0629_AE_basic_0_Z_regul_model_199.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0705_plus_conv_last_wo_ReLU_model_199.pt")
 parser.add_argument('--batchSize', type=int, default=10, help='input batch size for training')
 
 args = parser.parse_args()
@@ -68,8 +68,8 @@ def main(args):
     NetD = models.Discriminator().to(device)
 
     saveUtils.save_log(str(args))
-    saveUtils.save_log(str(summary(model, ((1,1,69,240), (1,1,69,30)))))
-    saveUtils.save_log(str(summary(NetD, (1,1,69,240))))
+    #saveUtils.save_log(str(summary(model, ((1,1,69,240), (1,1,69,30)))))
+    #saveUtils.save_log(str(summary(NetD, (1,1,69,240))))
 
     valid_dataloader, valid_dataset = data_load.get_dataloader(args.ValdatasetPath , args.batchSize, IsNoise=False, \
                                                                             IsTrain=False, dataset_mean=None, dataset_std=None)
@@ -100,14 +100,14 @@ def main(args):
         with torch.no_grad():
             if iternum%100 == 0:
                 gt_blended_image= GT_model(blend_input)
-                pred_affine = model(masked_input, blend_part_only)
+                pred_affine, pred_recon, _, _ = model(masked_input, blend_part_only, blend_part_only)
                 saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, masked_input, iternum) 
                 random_sampling_output = model.test_rand_mu_var(masked_input, args.batchSize)
                 saveUtils.save_result_test(random_sampling_output, iternum, 0)
                 
                 saveUtils.save_result_motionAB(blend_part, blend_part2)
                 for weight in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
-                    control_output = model.test_control_interpolation_2(masked_input, blend_part_only, blend_part_only2, weight, args.batchSize)
+                    control_output = model.test_interpolation(masked_input, blend_part_only, blend_part_only2, weight, args.batchSize)
                     saveUtils.save_result_control_interpolation(control_output, weight)
 
                 break
