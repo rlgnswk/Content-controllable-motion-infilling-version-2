@@ -17,7 +17,7 @@ from torchinfo import summary
 from torch.autograd import Variable
 
 import models as pretrain_models
-import models_blend_controllable_ver5_AE as models
+import models_blend_controllable_ver5_AE_ver2 as models
 
 import utils4blendtest as utils
 import data_load_blend_ver2_test as data_load
@@ -33,7 +33,7 @@ parser.add_argument('--ValdatasetPath', type=str, default='./valid_data')
 parser.add_argument('--saveDir', type=str, default='./experiment')
 parser.add_argument('--gpu', type=str, default='0', help='gpu')
 #parser.add_argument('--gt_pretrained_path', type=str, default="pertrained/0530maskDone1CurriculLearning_bn_model_199.pt")
-parser.add_argument('--pretrained', type=str, default="pertrained/0705_plus_conv_last_wo_ReLU_model_199.pt")
+parser.add_argument('--pretrained', type=str, default="pertrained/0706_REAL_plus_conv_last_wo_ReLU_model_199.pt")
 parser.add_argument('--batchSize', type=int, default=10, help='input batch size for training')
 
 args = parser.parse_args()
