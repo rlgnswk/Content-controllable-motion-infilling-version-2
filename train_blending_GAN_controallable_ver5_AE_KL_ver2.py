@@ -175,7 +175,7 @@ def main(args):
                          + torch.mean(-0.5 * torch.sum(1 + mask_part_latent_logvar - mask_part_latent_mean.pow(2) - mask_part_latent_logvar.exp(),dim=1), dim=0)
             
             #total_train_loss = recon_loss + kld_loss
-            total_train_loss = recon_loss + kld_loss + loss_G 
+            total_train_loss = recon_loss  + loss_G# + kld_loss 
             optimizer.zero_grad()
             total_train_loss.backward()
             optimizer.step()
