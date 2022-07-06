@@ -96,40 +96,44 @@ class MotionLoader(Dataset):
 
             ###make input for blending
             data_select = random.randint(0, len(self.data)-1)
+            while data_select == idx: 
+                data_select = random.randint(0, len(self.data)-1)
+
             blended_len = masking_length // 4  ## 30
             blend_image = self.remove_foot_contacts(self.data[data_select])
             blend_image = np.transpose(blend_image)
             blend_zeros = np.zeros((orig_height, orig_width))
             blend_cut_index = random.randint(0, orig_width - blended_len) # cutting start point 
             ###        
-
-            ###make input for blending 22222222222222222222222222
-            data_select2 = random.randint(0, len(self.data)-1)
-            blended_len = masking_length // 4  ## 30
-            blend_image2 = self.remove_foot_contacts(self.data[data_select2])
-            blend_image2 = np.transpose(blend_image2)
-
-            blend_zeros2 = np.zeros((orig_height, orig_width))
-
-
+            #test denoising
+            #masked_input = gt_image.copy() + np.random.randn(orig_height, orig_width) * 0.1 # deep copy
             
             # for maksing
             
             masked_input = gt_image.copy()
+
+
+            ### Third Image 4 tail part
+            data_select = random.randint(0, len(self.data)-1)
+            tail_image = self.remove_foot_contacts(self.data[data_select])
+            tail_image = np.transpose(tail_image)
             
             if self.IsTrain == True:
 
                 #In training step, randomly masking
                 masking = np.zeros((orig_height, mask_width))# generate zeros matrix for masking: orig_height x mask_width
+                blend_index = ((index + index + masking_length) // 2) - (blended_len // 2)
+                
+                maskpart =  gt_image[: , blend_index : blend_index + blended_len] # mask의 condition clip
+                
                 masked_input[: , index : index+mask_width] = masking # masking
                 
-                blend_index = ((index + index + masking_length) // 2) - (blended_len // 2)
+                
                 #blend_zeros[: , blend_index : blend_index + blended_len] = blend_image[: , blend_cut_index : blend_cut_index + blended_len]
                 blend_zeros[: , blend_index : blend_index + blended_len] = blend_image[: , blend_index : blend_index + blended_len] 
-                blend_part = blend_image[: , blend_index : blend_index + blended_len]
-
-                blend_zeros2[: , blend_index : blend_index + blended_len] = blend_image2[: , blend_index : blend_index + blended_len]
-                blend_part2 = blend_image2[: , blend_index : blend_index + blended_len]
+                blend_part = blend_image[: , blend_index : blend_index + blended_len] 
+            
+                
             else:
 
                 #In test phase, center of the data are masked
@@ -138,20 +142,17 @@ class MotionLoader(Dataset):
                 index = 120 - mask_width // 2
                 #index = 0
                 masked_input[: , index : index+mask_width] = masking # masking
-                
-                
+                masked_input[: , index+mask_width :] = tail_image[: , index+mask_width :] ## make A -masked - C image
+    
                 blend_index = ((index + index + masking_length) // 2) - (blended_len // 2)
-                
+                maskpart =  gt_image[: , blend_index : blend_index + blended_len] # mask의 condition clip
                 blend_zeros[: , blend_index : blend_index + blended_len] = blend_image[: , blend_index : blend_index + blended_len]
                 blend_part = blend_image[: , blend_index : blend_index + blended_len]
-                
-                blend_zeros2[: , blend_index : blend_index + blended_len] = blend_image2[: , blend_index : blend_index + blended_len]
-                blend_part2 = blend_image2[: , blend_index : blend_index + blended_len]
                 #blend_zeros[: , blend_index : blend_index + blended_len] = blend_image[: , blend_cut_index : blend_cut_index + blended_len] 
             
             #print(np.sum(masked_input) == np.sum(gt_image))
             #return maksed_input and gt CHW #(69, 240) --> (1, 69, 240)
-            return np.expand_dims(masked_input, axis=0), np.expand_dims(gt_image, axis=0), np.expand_dims(blend_zeros, axis=0), np.expand_dims(blend_image, axis=0), np.expand_dims(blend_part, axis=0), np.expand_dims(blend_zeros2, axis=0), np.expand_dims(blend_part2, axis=0) # it will (batch, 1, 69, 240)
+            return np.expand_dims(masked_input, axis=0), np.expand_dims(gt_image, axis=0), np.expand_dims(blend_zeros, axis=0), np.expand_dims(blend_image, axis=0), np.expand_dims(blend_part, axis=0), np.expand_dims(maskpart, axis=0),  np.expand_dims(tail_image, axis=0)# it will (batch, 1, 69, 240)
         
         def __len__(self):
             return len(self.data)
