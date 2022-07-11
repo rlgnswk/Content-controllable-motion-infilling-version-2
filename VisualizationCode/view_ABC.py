@@ -116,11 +116,11 @@ if __name__ == '__main__':
 
     #blend
     db_GT = 'epoch_'+str(epoch)+'_gt_image.npy'
-    db_recon_GT = 'epoch_'+str(epoch)+'_recon.npy'
+    db_recon_GT = 'epoch_'+str(epoch)+'_Masked_input.npy'
     #db_Input = 'epoch_'+str(epoch)+'_Masked_input.npy'
     db_Input = 'epoch_'+str(epoch)+'_blend_input.npy'
     db_Results = 'epoch_'+str(epoch)+'_pred.npy'
-    db_GT2 = 'epoch_'+str(epoch)+'_gt_blend.npy'
+    db_GT2 = 'epoch_'+str(epoch)+'_recon.npy'
     
     database_GT= np.load(os.path.join(data_path, db_GT))
     #print(database.shape)
@@ -150,13 +150,11 @@ if __name__ == '__main__':
         #index2 = np.random.randint(0, len(database))
         #print("database[index0:index0 + 1]: ",database[index0:index0 + 1].shape)
         animation_plot([
-            database_GT[index0:index0 + 1],
-            database_recon_GT[index0:index0 + 1],
-            
-            database_Input[index0:index0 + 1],
-            
-            database_Results[index0:index0 + 1],
-            #database_GT2[index0:index0 + 1]
+            database_GT[index0:index0 + 1], # GT start
+            database_recon_GT[index0:index0 + 1], # recon 
+            database_GT2[index0:index0 + 1], # GT tail
+            database_Input[index0:index0 + 1], #masked input + target motion 
+            database_Results[index0:index0 + 1] #pred A + target + B
         ])
         
         

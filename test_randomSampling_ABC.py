@@ -100,7 +100,8 @@ def main(args):
             if iternum%100 == 0:
                 gt_blended_image= GT_model(blend_input)
                 pred_affine, pred_recon, _, _ = model(masked_input, blend_part_only, maskpart)
-                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, tail_image, iternum) 
+                #saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, masked_input, tail_image, iternum) 
+                saveUtils.save_result(pred_affine, gt_image, blend_gt, gt_blended_image, blend_input, pred_recon, tail_image, iternum) 
                 random_sampling_output = model.test_rand_mu_var(masked_input, args.batchSize)
                 saveUtils.save_result_test(random_sampling_output, iternum, 0)
                 
