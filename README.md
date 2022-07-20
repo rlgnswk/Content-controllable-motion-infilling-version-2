@@ -1,4 +1,6 @@
-# Content controllable motion infilling version 2(latent space random sampling)
+# Content controllable motion infilling version 2 
+
+(+ latent space random sampling)
 
 Motion infilling into target content:
 
@@ -23,7 +25,7 @@ Additional: Baseline [Implementation(pytorch version)](https://github.com/rlgnsw
 </p>
 
 
-## Result(motion A - random transition - motion B):
+## Result (motion A - random transition - motion B):
 <p float="center">
   <img src="./figs/random_AB.gif" width="500" />
   <img src="./figs/random_AB2.gif" width="500" />
