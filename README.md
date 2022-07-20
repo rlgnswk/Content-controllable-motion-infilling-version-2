@@ -10,7 +10,7 @@ Additional: Baseline [Implementation(pytorch version)](https://github.com/rlgnsw
 
 ## Overall Structure:
 <p float="center">
-  <img src="./figs/model_overview.png" width="700" />
+  <img src="./figs/model_overview2.png" width="700" />
 
 </p>
 
