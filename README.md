@@ -25,7 +25,7 @@ Additional: Baseline [Implementation(pytorch version)](https://github.com/rlgnsw
 
 ## Result(motion A - random transition - motion B):
 <p float="center">
-  <img src="./figs/random_AB1.gif" width="500" />
+  <img src="./figs/random_AB.gif" width="500" />
   <img src="./figs/random_AB2.gif" width="500" />
    
 </p>
