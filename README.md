@@ -1,5 +1,4 @@
-# Content controllable motion infilling version 2 
-# (+ latent space random sampling)
+# Content controllable motion infilling version 2 (+ latent space random sampling)
 
 Motion infilling into target content:
 
