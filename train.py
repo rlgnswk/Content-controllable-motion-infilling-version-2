@@ -19,8 +19,8 @@ from torch.autograd import Variable
 import models as pretrain_models
 import models_blend_controllable_ver5_AE_ver2 as models
 
-import utils4blend as utils
-import data_load_blend_ver3 as data_load
+import utils
+import data_load
 #input sample of size 69 × 240
 #latent space 3 × 8 × 256 tensor
 
